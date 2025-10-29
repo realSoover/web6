@@ -1,11 +1,156 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Калькулятор стоимости транспортных услуг</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    
+    <div class="calc">
+        <h1>Калькулятор стоимости транспортных услуг</h1>
+
+        <div class="form-group">
+            <label for="quantity">Расстояние (км):</label>
+            <input id="quantity" type="number" min="1" step="1" value="1">
+            <small id="q-error" class="quantity-error" style="display:none;">Требуется ввести целое положительное число.</small>
+        </div>
+
+        <div class="form-group">
+            <label>Выберите услугу:</label>
+             <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="type1" name="serviceType" value="t1" checked>
+                    <label for="type1">Самокат</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="type2" name="serviceType" value="t2">
+                    <label for="type2">Такси</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="type3" name="serviceType" value="t3">
+                    <label for="type3">Грузоперевозка</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" id="option-group">
+            <label for="option">Класс такси:</label>
+            <select id="option">
+                <option value="s1">Эконом</option>
+                <option value="s2">Комфорт</option>
+                <option value="s3">Бизнес</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="property-group">
+            <div class="checkbox-option">
+                <input type="checkbox" id="extra">
+                <label for="extra">Доп. помощь грузчика</label>
+            </div>
+        </div>
+
+        <div class="result" id="result">
+            Общая стоимость: <span id="total-price">0</span> руб.
+        </div>
+    </div>
+
+    <script>
+        const prices = {
+            t1: 300,   // Самокат
+            t2: 600,   // Такси
+            t3: 1500   // Грузоперевозка
+        };
+
+        const option_multip = {
+            s1: 1.0,   // Эконом
+            s2: 1.2,   // Комфорт
+            s3: 1.6    // Бизнес
+        };
+
+        const extra_cost = 1000; // Доп. помощь грузчика
+
+        const quantityInput = document.getElementById('quantity');
+        const serviceTypeRadios = document.querySelectorAll('input[name="serviceType"]');
+        const optionGroup = document.getElementById('option-group');
+        const optionSelect = document.getElementById('option');
+        const propertyGroup = document.getElementById('property-group');
+        const propertyCheckbox = document.getElementById('extra');
+        const totalPriceSpan = document.getElementById('total-price');
+        const quantityError = document.getElementById('q-error');
+
+        function checkQuantity() {
+            const v = parseInt(quantityInput.value);
+            if (isNaN(v) || v < 1 || !Number.isInteger(v)) {
+                quantityError.style.display = 'block';
+                quantityInput.style.borderColor = 'red';
+                return false;
+            } else {
+                quantityError.style.display = 'none';
+                quantityInput.style.borderColor = '#ccc';
+                return true; 
+            }
+        }
+        
+        function initializeForm() { 
+            optionGroup.classList.add('hidden');
+            propertyGroup.classList.add('hidden');
+
+            quantityInput.addEventListener('input', checkQuantity);
+            serviceTypeRadios.forEach(radio => {
+                radio.addEventListener('change', handleServiceTypeChange);
+            });
+            optionSelect.addEventListener('change', calculateTotal);
+            propertyCheckbox.addEventListener('change', calculateTotal);
+            
+            calculateTotal();
+        }
+
+        function handleServiceTypeChange() {
+            const selectedType = document.querySelector('input[name="serviceType"]:checked').value;
+            
+            switch(selectedType) {
+                case 't1':
+                    optionGroup.classList.add('hidden');
+                    propertyGroup.classList.add('hidden');
+                    break;
+                case 't2':
+                    optionGroup.classList.remove('hidden');
+                    propertyGroup.classList.add('hidden');
+                    break;
+                case 't3':
+                    optionGroup.classList.add('hidden');
+                    propertyGroup.classList.remove('hidden');
+                    break;
+            }
+            
+            calculateTotal();
+        }
+        
+        function calculateTotal() {
+            if (!checkQuantity()) {
+                return;
+            }
+            
+            const quantity = parseInt(quantityInput.value);
+            const selectedType = document.querySelector('input[name="serviceType"]:checked').value;
+            
+            let unitPrice = prices[selectedType];
+            
+            if (selectedType === 't2') {
+                const selectedOption = optionSelect.value;
+                unitPrice *= option_multip[selectedOption];
+            }
+            
+            if (selectedType === 't3' && propertyCheckbox.checked) {
+                unitPrice += extra_cost;
+            }
+            
+            const totalPrice = quantity * unitPrice;
+            totalPriceSpan.textContent = totalPrice;
+        }
+        
+        document.addEventListener('DOMContentLoaded', initializeForm);
+    </script>
 </body>
 </html>
