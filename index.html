@@ -56,101 +56,102 @@
     </div>
 
     <script>
-        const prices = {
-            t1: 300,   // Самокат
-            t2: 600,   // Такси
-            t3: 1500   // Грузоперевозка
-        };
+       const prices = {
+    t1: 300,   // Самокат
+    t2: 600,   // Такси
+    t3: 1500   // Грузоперевозка
+};
 
-        const option_multip = {
-            s1: 1.0,   // Эконом
-            s2: 1.2,   // Комфорт
-            s3: 1.6    // Бизнес
-        };
+const option_multip = {
+    s1: 1.0,   // Эконом
+    s2: 1.2,   // Комфорт
+    s3: 1.6    // Бизнес
+};
 
-        const extra_cost = 1000; // Доп. помощь грузчика
+const extra_cost = 1000; // Доп. помощь грузчика
 
-        const quantityInput = document.getElementById('quantity');
-        const serviceTypeRadios = document.querySelectorAll('input[name="serviceType"]');
-        const optionGroup = document.getElementById('option-group');
-        const optionSelect = document.getElementById('option');
-        const propertyGroup = document.getElementById('property-group');
-        const propertyCheckbox = document.getElementById('extra');
-        const totalPriceSpan = document.getElementById('total-price');
-        const quantityError = document.getElementById('q-error');
+const quantityInput = document.getElementById('quantity');
+const serviceTypeRadios = document.querySelectorAll('input[name="serviceType"]');
+const optionGroup = document.getElementById('option-group');
+const optionSelect = document.getElementById('option');
+const propertyGroup = document.getElementById('property-group');
+const propertyCheckbox = document.getElementById('extra');
+const totalPriceSpan = document.getElementById('total-price');
+const quantityError = document.getElementById('q-error');
 
-        function checkQuantity() {
-            const v = parseInt(quantityInput.value);
-            if (isNaN(v) || v < 1 || !Number.isInteger(v)) {
-                quantityError.style.display = 'block';
-                quantityInput.style.borderColor = 'red';
-                return false;
-            } else {
-                quantityError.style.display = 'none';
-                quantityInput.style.borderColor = '#ccc';
-                return true; 
-            }
-        }
-        
-        function initializeForm() { 
+function checkQuantity() {
+    const v = parseInt(quantityInput.value);
+    if (isNaN(v) || v < 1 || !Number.isInteger(v)) {
+        quantityError.style.display = 'block';
+        quantityInput.style.borderColor = 'red';
+        return false;
+    } else {
+        quantityError.style.display = 'none';
+        quantityInput.style.borderColor = '#ccc';
+        return true; 
+    }
+}
+
+function initializeForm() { 
+    optionGroup.classList.add('hidden');
+    propertyGroup.classList.add('hidden');
+
+    // Добавляем обработчики событий для всех элементов формы
+    quantityInput.addEventListener('input', calculateTotal);
+    serviceTypeRadios.forEach(radio => {
+        radio.addEventListener('change', handleServiceTypeChange);
+    });
+    optionSelect.addEventListener('change', calculateTotal);
+    propertyCheckbox.addEventListener('change', calculateTotal);
+    
+    calculateTotal();
+}
+
+function handleServiceTypeChange() {
+    const selectedType = document.querySelector('input[name="serviceType"]:checked').value;
+    
+    switch(selectedType) {
+        case 't1':
             optionGroup.classList.add('hidden');
             propertyGroup.classList.add('hidden');
+            break;
+        case 't2':
+            optionGroup.classList.remove('hidden');
+            propertyGroup.classList.add('hidden');
+            break;
+        case 't3':
+            optionGroup.classList.add('hidden');
+            propertyGroup.classList.remove('hidden');
+            break;
+    }
+    
+    calculateTotal();
+}
 
-            quantityInput.addEventListener('input', checkQuantity);
-            serviceTypeRadios.forEach(radio => {
-                radio.addEventListener('change', handleServiceTypeChange);
-            });
-            optionSelect.addEventListener('change', calculateTotal);
-            propertyCheckbox.addEventListener('change', calculateTotal);
-            
-            calculateTotal();
-        }
+function calculateTotal() {
+    if (!checkQuantity()) {
+        return;
+    }
+    
+    const quantity = parseInt(quantityInput.value);
+    const selectedType = document.querySelector('input[name="serviceType"]:checked').value;
+    
+    let unitPrice = prices[selectedType];
+    
+    if (selectedType === 't2') {
+        const selectedOption = optionSelect.value;
+        unitPrice *= option_multip[selectedOption];
+    }
+    
+    if (selectedType === 't3' && propertyCheckbox.checked) {
+        unitPrice += extra_cost;
+    }
+    
+    const totalPrice = quantity * unitPrice;
+    totalPriceSpan.textContent = totalPrice;
+}
 
-        function handleServiceTypeChange() {
-            const selectedType = document.querySelector('input[name="serviceType"]:checked').value;
-            
-            switch(selectedType) {
-                case 't1':
-                    optionGroup.classList.add('hidden');
-                    propertyGroup.classList.add('hidden');
-                    break;
-                case 't2':
-                    optionGroup.classList.remove('hidden');
-                    propertyGroup.classList.add('hidden');
-                    break;
-                case 't3':
-                    optionGroup.classList.add('hidden');
-                    propertyGroup.classList.remove('hidden');
-                    break;
-            }
-            
-            calculateTotal();
-        }
-        
-        function calculateTotal() {
-            if (!checkQuantity()) {
-                return;
-            }
-            
-            const quantity = parseInt(quantityInput.value);
-            const selectedType = document.querySelector('input[name="serviceType"]:checked').value;
-            
-            let unitPrice = prices[selectedType];
-            
-            if (selectedType === 't2') {
-                const selectedOption = optionSelect.value;
-                unitPrice *= option_multip[selectedOption];
-            }
-            
-            if (selectedType === 't3' && propertyCheckbox.checked) {
-                unitPrice += extra_cost;
-            }
-            
-            const totalPrice = quantity * unitPrice;
-            totalPriceSpan.textContent = totalPrice;
-        }
-        
-        document.addEventListener('DOMContentLoaded', initializeForm);
+document.addEventListener('DOMContentLoaded', initializeForm);
     </script>
 </body>
 </html>
